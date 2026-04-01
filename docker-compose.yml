@@ -9,7 +9,7 @@ services:
       POSTGRES_PASSWORD: password
       POSTGRES_DB: k3_db
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - k3_pgdata:/var/lib/postgresql/data
     restart: unless-stopped
@@ -22,8 +22,8 @@ services:
       MINIO_ROOT_PASSWORD: password
     command: server /data --console-address ":9001"
     ports:
-      - "9000:9000"
-      - "9001:9001"
+      - "9002:9000"
+      - "9003:9001"
     volumes:
       - k3_miniodata:/data
     restart: unless-stopped

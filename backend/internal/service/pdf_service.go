@@ -17,6 +17,7 @@ import (
 
 type PDFService interface {
 	GenerateWorkPermitPDF(ctx context.Context, permit *domain.WorkPermit) ([]byte, error)
+	GenerateJSAPDF(ctx context.Context, jsa *domain.JSA) ([]byte, error)
 }
 
 type pdfService struct{}
@@ -91,6 +92,70 @@ func (s *pdfService) GenerateWorkPermitPDF(ctx context.Context, permit *domain.W
 	document, err := m.Generate()
 	if err != nil {
 		log.Printf("Error generating PDF document: %v", err)
+		return nil, err
+	}
+
+	return document.GetBytes(), nil
+}
+
+func (s *pdfService) GenerateJSAPDF(ctx context.Context, jsa *domain.JSA) ([]byte, error) {
+	cfg := config.NewBuilder().
+		WithPageSize("A4").
+		Build()
+
+	m := maroto.New(cfg)
+
+	// Header
+	m.AddRow(15,
+		col.New(12).Add(
+			text.New("PT. Fonusa Agung Mulia", props.Text{
+				Top:   2,
+				Style: fontstyle.Bold,
+				Align: align.Center,
+				Size:  14,
+			}),
+		),
+	)
+	m.AddRow(10,
+		col.New(12).Add(
+			text.New("JOB SAFETY ANALYSIS (JSA) - F.120.01.00.11 Rev.01", props.Text{
+				Style: fontstyle.Bold,
+				Align: align.Center,
+				Size:  12,
+			}),
+		),
+	)
+
+	// Info section
+	m.AddRow(8,
+		col.New(6).Add(text.New(fmt.Sprintf("No Job: %s", jsa.JobNumber))),
+		col.New(6).Add(text.New(fmt.Sprintf("Nama Pekerjaan: %s", jsa.JobName))),
+	)
+
+	m.AddRow(8,
+		col.New(6).Add(text.New(fmt.Sprintf("Tanggal Terbit: %s", jsa.Date.Format("02 Jan 2006")))),
+		col.New(6).Add(text.New(fmt.Sprintf("Pelaksana: %s", jsa.Executor))),
+	)
+	
+	m.AddRow(8,
+		col.New(6).Add(text.New(fmt.Sprintf("Departemen: %s", jsa.Department))),
+		col.New(6).Add(text.New(fmt.Sprintf("Pengawas: %s", jsa.Supervisor))),
+	)
+
+	m.AddRow(10, col.New(12).Add(text.New("Langkah Analisis Keselamatan Pekerjaan:", props.Text{Style: fontstyle.Bold, Top: 5})))
+
+	for _, step := range jsa.AnalysisSteps {
+		m.AddRow(6, col.New(12).Add(text.New(fmt.Sprintf("%d. %s", step.Sequence, step.WorkStep), props.Text{Style: fontstyle.Bold})))
+		m.AddRow(5, col.New(12).Add(text.New(fmt.Sprintf("   Sumber Bahaya: %s", step.HazardSource))))
+		m.AddRow(5, col.New(12).Add(text.New(fmt.Sprintf("   Potensi Bahaya: %s", step.PotentialHazard))))
+		m.AddRow(7, col.New(12).Add(text.New(fmt.Sprintf("   Upaya Pengendalian: %s", step.ControlMeasure))))
+	}
+
+	m.AddRow(10, col.New(12).Add(text.New(fmt.Sprintf("\nStatus JSA: %s", jsa.Status), props.Text{Style: fontstyle.Bold, Top: 5})))
+
+	document, err := m.Generate()
+	if err != nil {
+		log.Printf("Error generating JSA PDF: %v", err)
 		return nil, err
 	}
 

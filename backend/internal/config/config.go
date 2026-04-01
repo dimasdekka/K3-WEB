@@ -14,11 +14,11 @@ import (
 func InitDB() (*gorm.DB, error) {
 	// Typically you would read from env variables
 	// Hardcoded fallback for Phase 1 local dev
-	host := getEnv("DB_HOST", "localhost")
+	host := getEnv("DB_HOST", "127.0.0.1")
 	user := getEnv("DB_USER", "root")
 	password := getEnv("DB_PASSWORD", "password")
 	dbname := getEnv("DB_NAME", "k3_db")
-	port := getEnv("DB_PORT", "5432")
+	port := getEnv("DB_PORT", "5433")
 
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Asia/Jakarta",
 		host, user, password, dbname, port)
@@ -37,6 +37,8 @@ func InitDB() (*gorm.DB, error) {
 		&domain.WorkPermitPersonnel{},
 		&domain.WorkPermitEquipment{},
 		&domain.WorkPermitContaminationRisk{},
+		&domain.JSA{},
+		&domain.JSAAnalysisStep{},
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to run migrations: %w", err)

@@ -26,14 +26,20 @@ func main() {
 
 	// Dependency Injection
 	wpRepo := repository.NewWorkPermitRepository(db)
+	jsaRepo := repository.NewJSARepository(db)
+
 	pdfSvc := service.NewPDFService()
+
 	wpSvc := service.NewWorkPermitService(wpRepo)
+	jsaSvc := service.NewJSAService(jsaRepo)
+
 	wpHandler := handler.NewWorkPermitHandler(wpSvc, pdfSvc)
+	jsaHandler := handler.NewJSAHandler(jsaSvc, pdfSvc)
 
 	// Router setup
 	r := gin.Default()
 
-	// CORS or other middlewares can be added here
+	// API Groups
 	v1 := r.Group("/api/v1")
 	{
 		permits := v1.Group("/work-permits")
@@ -44,6 +50,15 @@ func main() {
 			permits.GET("/:id/pdf", wpHandler.DownloadPDF)
 			permits.POST("/:id/approve/manager", wpHandler.ApproveManager)
 			permits.POST("/:id/approve/k3", wpHandler.ApproveK3)
+		}
+
+		jsaGroup := v1.Group("/jsa")
+		{
+			jsaGroup.POST("", jsaHandler.Create)
+			jsaGroup.GET("", jsaHandler.List)
+			jsaGroup.GET("/:id", jsaHandler.GetByID)
+			jsaGroup.GET("/:id/pdf", jsaHandler.DownloadPDF)
+			jsaGroup.POST("/:id/approve/k3", jsaHandler.ApproveK3)
 		}
 	}
 
