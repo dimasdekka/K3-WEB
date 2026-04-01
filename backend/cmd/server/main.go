@@ -4,6 +4,10 @@ import (
 	"log"
 
 	"github.com/fonusa/k3-backend/internal/config"
+	"github.com/fonusa/k3-backend/internal/handler"
+	"github.com/fonusa/k3-backend/internal/repository"
+	"github.com/fonusa/k3-backend/internal/service"
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
@@ -20,9 +24,31 @@ func main() {
 		}
 	}()
 
-	log.Println("Database connection established and migrations generated.")
-	
-	// TODO: Setup Fiber/Gin/Echo/net-http and routing router here.
-	// For now we will just verify the connection.
-	log.Println("Backend initialization complete (Phase 1).")
+	// Dependency Injection
+	wpRepo := repository.NewWorkPermitRepository(db)
+	pdfSvc := service.NewPDFService()
+	wpSvc := service.NewWorkPermitService(wpRepo)
+	wpHandler := handler.NewWorkPermitHandler(wpSvc, pdfSvc)
+
+	// Router setup
+	r := gin.Default()
+
+	// CORS or other middlewares can be added here
+	v1 := r.Group("/api/v1")
+	{
+		permits := v1.Group("/work-permits")
+		{
+			permits.POST("", wpHandler.Create)
+			permits.GET("", wpHandler.List)
+			permits.GET("/:id", wpHandler.GetByID)
+			permits.GET("/:id/pdf", wpHandler.DownloadPDF)
+			permits.POST("/:id/approve/manager", wpHandler.ApproveManager)
+			permits.POST("/:id/approve/k3", wpHandler.ApproveK3)
+		}
+	}
+
+	log.Println("Started Server loosely on port 8080. Ready for requests.")
+	if err := r.Run(":8080"); err != nil {
+		log.Fatalf("Error running server: %v", err)
+	}
 }

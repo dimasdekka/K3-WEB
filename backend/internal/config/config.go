@@ -31,7 +31,13 @@ func InitDB() (*gorm.DB, error) {
 
 	// AutoMigrate initial tables
 	log.Println("Running AutoMigrate...")
-	err = db.AutoMigrate(&domain.User{})
+	err = db.AutoMigrate(
+		&domain.User{},
+		&domain.WorkPermit{},
+		&domain.WorkPermitPersonnel{},
+		&domain.WorkPermitEquipment{},
+		&domain.WorkPermitContaminationRisk{},
+	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to run migrations: %w", err)
 	}
