@@ -27,14 +27,17 @@ func main() {
 	// Dependency Injection
 	wpRepo := repository.NewWorkPermitRepository(db)
 	jsaRepo := repository.NewJSARepository(db)
+	patrolRepo := repository.NewPatrolRepository(db)
 
 	pdfSvc := service.NewPDFService()
 
 	wpSvc := service.NewWorkPermitService(wpRepo)
 	jsaSvc := service.NewJSAService(jsaRepo)
+	patrolSvc := service.NewPatrolService(patrolRepo)
 
 	wpHandler := handler.NewWorkPermitHandler(wpSvc, pdfSvc)
 	jsaHandler := handler.NewJSAHandler(jsaSvc, pdfSvc)
+	patrolHandler := handler.NewPatrolHandler(patrolSvc, pdfSvc)
 
 	// Router setup
 	r := gin.Default()
@@ -59,6 +62,15 @@ func main() {
 			jsaGroup.GET("/:id", jsaHandler.GetByID)
 			jsaGroup.GET("/:id/pdf", jsaHandler.DownloadPDF)
 			jsaGroup.POST("/:id/approve/k3", jsaHandler.ApproveK3)
+		}
+
+		patrolGroup := v1.Group("/patrol")
+		{
+			patrolGroup.POST("", patrolHandler.Create)
+			patrolGroup.GET("", patrolHandler.List)
+			patrolGroup.GET("/:id", patrolHandler.GetByID)
+			patrolGroup.GET("/:id/pdf", patrolHandler.DownloadPDF)
+			patrolGroup.POST("/:id/approve/pic", patrolHandler.ApprovePIC)
 		}
 	}
 

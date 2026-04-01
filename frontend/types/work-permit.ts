@@ -62,4 +62,6 @@ export interface WorkPermit extends WorkPermitForm {
   permit_number: string;
   status: "DRAFT" | "WAITING_MANAGER" | "WAITING_K3" | "APPROVED" | "REJECTED";
   created_at: string;
+  manager_approved_at?: string;
+  k3_officer_approved_at?: string;
 }

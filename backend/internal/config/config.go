@@ -39,6 +39,7 @@ func InitDB() (*gorm.DB, error) {
 		&domain.WorkPermitContaminationRisk{},
 		&domain.JSA{},
 		&domain.JSAAnalysisStep{},
+		&domain.PatrolK3{},
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to run migrations: %w", err)
